@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>NETA NOTE｜お笑い観賞ノート</title>
+  <meta name="description" content="観たネタを、おもしろ・笑い・理解度・オチの4項目と全体評価で記録していくノート。">
+  <meta name="theme-color" content="#0a0b0a">
+  <meta name="apple-mobile-web-app-title" content="NETA NOTE">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <link rel="manifest" href="manifest.webmanifest">
+
+  <script>
+    /* アニメーションの初期状態（チラつき防止）。JSが動かなければ数秒で通常表示に戻す */
+    (function (h) {
+      if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      h.classList.add("js-motion");
+      setTimeout(function () { if (!h.classList.contains("motion-on")) h.classList.remove("js-motion"); }, 3500);
+    })(document.documentElement);
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Klee+One:wght@600&family=Unbounded:wght@500;700;800;900&family=Zen+Kaku+Gothic+New:wght@400;700;900&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lenis@1.3.11/dist/lenis.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="progress" aria-hidden="true"></div>
+  <div class="spot" aria-hidden="true"></div>
+  <div class="grain" aria-hidden="true"></div>
+
+  <header class="nav" id="nav">
+    <a class="wordmark" href="#top" data-scroll>NETA<span>NOTE</span></a>
+    <nav aria-label="セクション">
+      <a href="#picks" data-scroll>PICKS</a>
+      <a href="#all" data-scroll>ALL</a>
+      <a href="#how" data-scroll>HOW</a>
+    </nav>
+  </header>
+
+  <main id="top">
+    <!-- ───────── HERO ───────── -->
+    <section class="hero">
+      <div class="hero-main">
+        <p class="hero-kicker" data-intro>お笑い観賞ノート</p>
+        <h1 class="hero-title" aria-label="NETA NOTE">
+          <span class="line" aria-hidden="true"><span class="word" data-split>NETA</span></span>
+          <span class="line" aria-hidden="true"><span class="word outline outline-fx" data-split>NOTE</span></span>
+        </h1>
+        <div class="hero-bottom">
+          <p class="hero-lead" data-intro>観たネタ、ぜんぶ採点。<small>おもしろ・笑い・理解度・オチの4項目と、全体評価で記録しています。</small></p>
+          <dl class="hero-stats">
+            <div data-intro><dt>ACTS</dt><dd><span id="stat-count">0</span><small>組</small></dd></div>
+            <div data-intro><dt>A+</dt><dd><span id="stat-ap">0</span><small>組</small></dd></div>
+            <div data-intro><dt>AVERAGE</dt><dd><span id="stat-avg">0</span><small>点</small></dd></div>
+          </dl>
+        </div>
+      </div>
+      <div class="marquee" aria-hidden="true" data-intro>
+        <div class="mq-track"></div>
+        <div class="mq-track mq-track--outline"></div>
+      </div>
+    </section>
+
+    <!-- ───────── TOP PICKS ───────── -->
+    <section class="section" id="picks">
+      <header class="sec-head">
+        <span class="sec-no">01</span>
+        <h2><span class="rv"><span>TOP PICKS</span></span></h2>
+        <p>全体評価 A+ の組</p>
+      </header>
+      <div class="picks-grid" id="picks-grid"></div>
+    </section>
+
+    <!-- ───────── ALL ACTS ───────── -->
+    <section class="section" id="all">
+      <header class="sec-head">
+        <span class="sec-no">02</span>
+        <h2><span class="rv"><span>ALL ACTS</span></span></h2>
+        <p>記録したすべての組。タップで詳細</p>
+      </header>
+
+      <div class="toolbar" id="toolbar">
+        <label class="search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <span class="vh">検索</span>
+          <input type="search" id="q" placeholder="組名・メモで検索" autocomplete="off" enterkeyhint="search">
+        </label>
+        <div class="chips" id="chips" role="group" aria-label="全体評価で絞り込み"></div>
+        <label class="select">
+          <span class="vh">並び順</span>
+          <select id="sort"></select>
+        </label>
+        <div class="view-toggle" id="view-toggle" role="group" aria-label="表示の切り替え">
+          <button type="button" data-view="card" aria-pressed="true">CARD</button>
+          <button type="button" data-view="table" aria-pressed="false">TABLE</button>
+          <span class="vt-thumb" aria-hidden="true"></span>
+        </div>
+      </div>
+      <p class="result" id="result" aria-live="polite"></p>
+
+      <div class="cards" id="cards"></div>
+      <div class="table-view" id="table-view" hidden>
+        <div class="table-wrap" id="table-wrap"></div>
+        <div class="heat-legend" aria-hidden="true">
+          <span>1</span><i class="h0"></i><i class="h1"></i><i class="h2"></i><i class="h3"></i><i class="h4"></i><i class="h5"></i><i class="h6"></i><i class="h7"></i><i class="h8"></i><span>5</span>
+        </div>
+      </div>
+      <p class="empty" id="empty" hidden>見つかりませんでした。</p>
+    </section>
+
+    <!-- ───────── HOW ───────── -->
+    <section class="section" id="how">
+      <header class="sec-head">
+        <span class="sec-no">03</span>
+        <h2><span class="rv"><span>HOW TO RATE</span></span></h2>
+        <p>採点のしかた。各項目1〜5（0.5刻みあり）＋全体評価</p>
+      </header>
+      <div class="crit-grid" id="crit-grid"></div>
+      <div class="dist">
+        <h3>全体評価の分布 <small>C → B- → B+ → A- → A+ の5段階</small></h3>
+        <ul id="dist"></ul>
+        <p class="dist-note"><b>好き補正</b>4項目の点数から予想される全体評価と、実際の全体評価の差。自分の採点のクセから自動で計算しています。プラスなら「点数以上に好き」。</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <p class="foot-mark outline-fx" aria-hidden="true">NETA NOTE</p>
+    <div class="foot-meta">
+      <span>最終更新 <time id="updated"></time></span>
+      <span><b id="foot-count">0</b> ACTS RECORDED</span>
+    </div>
+  </footer>
+
+  <!-- ───────── 詳細シート ───────── -->
+  <div class="sheet" id="sheet" hidden>
+    <div class="sheet-backdrop" data-close></div>
+    <article class="sheet-panel" role="dialog" aria-modal="true" aria-labelledby="sh-name">
+      <button type="button" class="sheet-close" data-close aria-label="閉じる">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+      </button>
+      <div class="sheet-scroll" data-lenis-prevent>
+        <div class="sheet-body" id="sheet-body"></div>
+      </div>
+    </article>
+  </div>
+
+  <script src="data/reviews.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/Flip.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lenis@1.3.11/dist/lenis.min.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

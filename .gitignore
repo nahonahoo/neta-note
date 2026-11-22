@@ -1,0 +1,9 @@
+# 元のメモ写真は公開しない
+images/
+*.HEIC
+*.heic
+
+# OS / エディタ
+.DS_Store
+Thumbs.db
+.vscode/
