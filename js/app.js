@@ -10,10 +10,11 @@
 
   /* ---------- 定義 ---------- */
   const CRITERIA = [
-    { key: "omoshiro", label: "おもしろ", en: "INTEREST", desc: "ネタそのもののおもしろさ。発想や設定の良さ。" },
-    { key: "warai", label: "笑い", en: "LAUGHS", desc: "実際にどれだけ笑ったか。" },
-    { key: "rikai", label: "理解度", en: "CLARITY", desc: "すんなり入ってきたか。わかりやすさ。" },
-    { key: "ochi", label: "オチ", en: "PUNCHLINE", desc: "締めの決まり具合。" },
+    // shape：その項目の形（色は CSS の [data-k] で指定）
+    { key: "omoshiro", label: "おもしろ", en: "INTEREST", shape: "circle", desc: "ネタそのもののおもしろさ。発想や設定の良さ。" },
+    { key: "warai", label: "笑い", en: "LAUGHS", shape: "smile", desc: "実際にどれだけ笑ったか。" },
+    { key: "rikai", label: "理解度", en: "CLARITY", shape: "square", desc: "すんなり入ってきたか。わかりやすさ。" },
+    { key: "ochi", label: "オチ", en: "PUNCHLINE", shape: "tri", desc: "締めの決まり具合。" },
   ];
   const GRADES = ["A+", "A-", "B+", "B-", "C"];
   const GRADE_RANK = { "A+": 5, "A-": 4, "B+": 3, "B-": 2, C: 1 };
@@ -26,6 +27,8 @@
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
   const fmt = (n) => String(Math.round(n * 10) / 10);
   const pad2 = (n) => String(n).padStart(2, "0");
+  const n3 = (v) => +v.toFixed(3);
+  const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
   const mean = (arr) => (arr.length ? arr.reduce((s, v) => s + v, 0) / arr.length : 0);
   const signed = (n) => {
     const r = Math.round(n * 10) / 10;
@@ -141,15 +144,35 @@
   };
 
   /* ---------- 部品 ---------- */
+  const score = (a, c) => clamp(Number(a.scores[c.key]) || 0, 0, 5);
+  const icon = (c, cls = "") => `<i class="sh sh--${c.shape} ${cls}" data-k="${c.key}" aria-hidden="true"></i>`;
+
+  // 点数＝図形5個。--f は塗る割合（1 / 0.5 / 0）
+  const pips = (c, v) =>
+    Array.from({ length: 5 }, (_, i) => `<i class="pip sh sh--${c.shape}" style="--f:${clamp(v - i, 0, 1)}"></i>`).join("");
   const meterRows = (a, big = false) =>
     CRITERIA.map((c) => {
-      const v = Number(a.scores[c.key]) || 0;
+      const v = score(a, c);
       return `<li class="m-row" data-k="${c.key}">
-        <span class="m-label">${c.label}${big ? `<small>${c.en}</small>` : ""}</span>
-        <span class="m-track"><span class="m-fill" data-v="${v / 5}" style="--v:${v / 5}"></span></span>
+        <span class="m-label"><i class="sh sh--${c.shape} m-ico" aria-hidden="true"></i>${c.label}${big ? `<small>${c.en}</small>` : ""}</span>
+        <span class="pips" aria-hidden="true">${pips(c, v)}</span>
         <span class="m-val">${fmt(v)}</span>
       </li>`;
     }).join("");
+
+  // ネタの形：2×2 のマスに4項目の図形。幅が点数に比例（3点なら満点の6割の幅）。薄い形＝満点の大きさ
+  const shapeEl = (shape, cx, cy, s) => {
+    const r = 0.43 * s;
+    if (shape === "circle") return `<circle cx="${cx}" cy="${cy}" r="${n3(r)}"/>`;
+    if (shape === "smile") return `<path d="M${n3(cx - r)} ${n3(cy - r / 2)}A${n3(r)} ${n3(r)} 0 0 0 ${n3(cx + r)} ${n3(cy - r / 2)}Z"/>`;
+    if (shape === "square") return `<rect x="${n3(cx - r)}" y="${n3(cy - r)}" width="${n3(2 * r)}" height="${n3(2 * r)}" rx="${n3(0.05 * s)}"/>`;
+    return `<path d="M${cx} ${n3(cy - r)}L${n3(cx + r)} ${n3(cy + r * 0.85)}L${n3(cx - r)} ${n3(cy + r * 0.85)}Z"/>`;
+  };
+  const emblem = (a, cls = "") =>
+    `<svg class="emblem ${cls}" viewBox="0 0 2 2" aria-hidden="true">${CRITERIA.map((c, i) => {
+      const cx = (i % 2) + 0.5, cy = Math.floor(i / 2) + 0.5;
+      return `<g data-k="${c.key}"><g class="e-bg">${shapeEl(c.shape, cx, cy, 1)}</g><g class="e-fg">${shapeEl(c.shape, cx, cy, score(a, c) / 5)}</g></g>`;
+    }).join("")}</svg>`;
 
   const tagItems = (a) =>
     [...a.tags.map((t) => `<li>#${esc(t)}</li>`), a.result ? `<li class="result">${esc(a.result)}</li>` : ""].join("");
@@ -160,7 +183,7 @@
     const more = a.notes.length - shown.length;
     const tags = tagItems(a);
     return `<div class="card-inner" data-tilt>
-      <div class="card-head"><span class="card-rank">#${pad2(a.rank)}</span>${badge(a.grade)}</div>
+      <div class="card-head"><span class="card-rank">#${pad2(a.rank)}</span><span class="card-marks">${emblem(a)}${badge(a.grade)}</span></div>
       <h3 class="card-name">${esc(a.name)}</h3>
       <ul class="meters">${meterRows(a)}</ul>
       ${shown.length ? `<ul class="notes">${shown.map((n) => `<li>${esc(n)}</li>`).join("")}${more > 0 ? `<li class="more">+${more} MORE</li>` : ""}</ul>` : ""}
@@ -186,13 +209,17 @@
     cardEls.set(a.id, el);
   });
 
-  /* ---------- メーター・出現アニメ ---------- */
-  function fillMeters(scope, delay = 0) {
+  /* ---------- データの出現アニメ ---------- */
+  // 図形がポンと跳ねて出る／ネタの形が育つ／好き補正のバーが伸びる／チップや点が弾む
+  function animateData(scope, delay = 0) {
     if (!motion) return;
     const scopes = Array.isArray(scope) ? scope : [scope];
-    const fills = scopes.flatMap((el) => $$(".m-fill, .d-fill", el));
-    if (!fills.length) return;
-    G.fromTo(fills, { "--v": 0 }, { "--v": (i, el) => +el.dataset.v, duration: 1.6, ease: "expo.out", stagger: 0.018, delay, overwrite: true });
+    const pick = (sel) => scopes.flatMap((el) => $$(sel, el));
+    const pipEls = pick(".pip"), embl = pick(".emblem .e-fg"), bias = pick(".bias-fill"), units = pick(".unit, .dot");
+    if (pipEls.length) G.fromTo(pipEls, { scale: 0, rotation: -120 }, { scale: 1, rotation: 0, duration: 0.6, ease: "back.out(2.6)", stagger: 0.016, delay, overwrite: true });
+    if (embl.length) G.fromTo(embl, { scale: 0, rotation: 90, transformOrigin: "50% 50%" }, { scale: 1, rotation: 0, duration: 0.9, ease: "back.out(2)", stagger: 0.05, delay: delay + 0.1, overwrite: true });
+    bias.forEach((el) => G.fromTo(el, { scaleX: 0, transformOrigin: el.classList.contains("neg") ? "100% 50%" : "0% 50%" }, { scaleX: 1, duration: 1.2, ease: "expo.out", delay: delay + 0.35, overwrite: true }));
+    if (units.length) G.fromTo(units, { scale: 0 }, { scale: 1, duration: 0.55, ease: "back.out(2.4)", stagger: 0.014, delay, overwrite: true });
   }
 
   function revealInner(cards, quick) {
@@ -202,7 +229,7 @@
     if (!motion) return;
     if (quick) G.set(inners, { autoAlpha: 1, y: 0 });
     else G.fromTo(inners, { y: 70, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 1.15, ease: "expo.out", stagger: 0.08, overwrite: "auto" });
-    fillMeters(inners, quick ? 0.25 : 0.15);
+    animateData(inners, quick ? 0.25 : 0.15);
   }
 
   /* ---------- 一覧 ---------- */
@@ -267,7 +294,7 @@
     const sortBtn = (key, label) => `<button type="button" data-sort="${key}" aria-pressed="${state.sort === key}">${label}</button>`;
     const head = `<thead><tr>
       <th scope="col" class="t-name"><span>組</span></th>
-      ${CRITERIA.map((c) => `<th scope="col">${sortBtn(c.key, c.label)}</th>`).join("")}
+      ${CRITERIA.map((c) => `<th scope="col">${sortBtn(c.key, icon(c) + c.label)}</th>`).join("")}
       <th scope="col">${sortBtn("total", "合計")}</th>
       <th scope="col">${sortBtn("grade", "全体")}</th>
     </tr></thead>`;
@@ -371,7 +398,7 @@
     els.picks.innerHTML = picksList.map((a, i) => `
       <article class="pick" data-id="${a.id}" tabindex="0" role="button" aria-label="${esc(a.name)}（全体評価 A+）の詳細を開く">
         <div class="pick-inner" data-tilt>
-          <div class="pick-head"><span class="pick-no outline-fx" aria-hidden="true">${pad2(i + 1)}</span>${badge(a.grade)}</div>
+          <div class="pick-head"><span class="pick-no outline-fx" aria-hidden="true">${pad2(i + 1)}</span><span class="pick-marks">${emblem(a)}${badge(a.grade)}</span></div>
           <h3 class="pick-name">${esc(a.name)}</h3>
           <ul class="meters">${meterRows(a)}</ul>
           ${a.notes[0] ? `<p class="pick-quote">${esc(a.notes[0])}</p>` : ""}
@@ -401,20 +428,46 @@
   }
 
   function renderHow() {
-    $("#crit-grid").innerHTML = CRITERIA.map((c, i) => `
-      <div class="crit">
-        <span class="crit-no outline-fx" aria-hidden="true">${pad2(i + 1)}</span>
+    // 各項目：1組＝図形1個を、点数（1〜5、0.5刻み）の位置に積む
+    const steps = Array.from({ length: 9 }, (_, j) => 1 + j * 0.5);
+    $("#crit-grid").innerHTML = CRITERIA.map((c, i) => {
+      const cols = steps.map((v) => acts.filter((a) => score(a, c) === v).sort(SORTS.grade.fn));
+      return `
+      <div class="crit" data-k="${c.key}">
+        <div class="crit-top">${icon(c, "crit-shape")}<span class="crit-no">${pad2(i + 1)}</span></div>
         <h3><small>${c.en}</small>${c.label}</h3>
         <p>${c.desc}</p>
-        <p class="crit-avg">AVERAGE<b>${mean(acts.map((a) => Number(a.scores[c.key]) || 0)).toFixed(1)}</b></p>
-      </div>`).join("");
-    const counts = GRADES.map((g) => acts.filter((a) => a.grade === g).length);
-    const max = Math.max(1, ...counts);
-    $("#dist").innerHTML = GRADES.map((g, i) => `
+        <div class="dots" role="group" aria-label="${c.label}の点数の分布">${cols.map((list, j) => `<div class="dcol">${list.map((a) =>
+          `<button type="button" class="dot sh sh--${c.shape}" data-open="${a.id}" title="${esc(a.name)}（${fmt(steps[j])}点）" aria-label="${esc(a.name)} ${fmt(steps[j])}点"></button>`).join("")}</div>`).join("")}</div>
+        <div class="dots-axis" aria-hidden="true"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></div>
+        <p class="crit-avg">AVERAGE<b>${mean(acts.map((a) => score(a, c))).toFixed(1)}</b></p>
+      </div>`;
+    }).join("");
+
+    // ネタの形の説明（満点の形を見本に）
+    const perfect = { scores: Object.fromEntries(CRITERIA.map((c) => [c.key, 5])) };
+    $("#emblem-help").innerHTML = `
+      ${emblem(perfect)}
+      <div>
+        <h3>ネタの形<small>SHAPE OF THE ACT</small></h3>
+        <p>4つの図形の大きさが、4項目の点数。全部5点だと、この形がぴったり埋まります。組ごとに形が変わるので、カードや詳細で見くらべてみてください。</p>
+        <ul class="e-legend">${CRITERIA.map((c) => `<li>${icon(c)}${c.label}</li>`).join("")}</ul>
+      </div>`;
+
+    // 全体評価：1組＝チップ1個
+    $("#dist").innerHTML = GRADES.map((g) => {
+      const list = acts.filter((a) => a.grade === g).sort(SORTS.total.fn);
+      return `
       <li>${badge(g)}
-        <span class="d-track"><span class="d-fill" data-v="${counts[i] / max}" style="--v:${counts[i] / max}"></span></span>
-        <b>${counts[i]}<small>組</small></b>
-      </li>`).join("");
+        <div class="units">${list.length ? list.map((a) => `<button type="button" class="unit" data-open="${a.id}">${esc(a.name)}</button>`).join("") : `<span class="units-empty">まだなし</span>`}</div>
+        <b>${list.length}<small>組</small></b>
+      </li>`;
+    }).join("");
+  }
+
+  function renderHeatLegend() {
+    $("#heat-legend").innerHTML = `<span>明るいほど高得点（1→5）</span>` + CRITERIA.map((c) =>
+      `<span class="hl" data-k="${c.key}">${icon(c)}${Array.from({ length: 9 }, (_, n) => `<i class="h${n}"></i>`).join("")}</span>`).join("");
   }
 
   /* ---------- 詳細シート ---------- */
@@ -429,12 +482,18 @@
     const idx = curList.indexOf(a);
     const meta = [a.event, a.date].filter(Boolean).map(esc).join(" ・ ");
     const tags = tagItems(a);
+    // 好き補正のバー：±2 を端として、真ん中から伸ばす
+    const b = clamp(a.bias, -2, 2), w = n3((Math.abs(b) / 2) * 50);
     return `
       <p class="sh-kicker"><b>RANK #${pad2(a.rank)}</b> / ${acts.length}${meta ? " ・ " + meta : ""}</p>
       <h2 class="sh-name" id="sh-name">${esc(a.name)}</h2>
-      <div class="sh-top">${badge(a.grade, "grade--xl")}<span class="sh-total"><b>${fmt(a.total)}</b>/ 20</span></div>
+      <div class="sh-top">${badge(a.grade, "grade--xl")}<span class="sh-total"><b>${fmt(a.total)}</b>/ 20</span>
+        <figure class="sh-emblem">${emblem(a, "emblem--xl")}<figcaption>ネタの形</figcaption></figure></div>
       <ul class="meters sh-meters">${meterRows(a, true)}</ul>
-      <div class="sh-bias"><b>${signed(a.bias)}</b><span>好き補正</span><small>${biasText(a.bias)}</small></div>
+      <div class="sh-bias"><b>${signed(a.bias)}</b><span>好き補正</span><small>${biasText(a.bias)}</small>
+        <div class="bias-track" aria-hidden="true"><span class="bias-fill ${b >= 0 ? "pos" : "neg"}" style="left:${b >= 0 ? 50 : 50 - w}%;width:${w}%"></span></div>
+        <div class="bias-scale" aria-hidden="true"><span>← 控えめ</span><span>点数どおり</span><span>点数以上に好き →</span></div>
+      </div>
       ${a.notes.length ? `<ul class="sh-notes">${a.notes.map((n) => `<li>${esc(n)}</li>`).join("")}</ul>` : ""}
       ${tags ? `<ul class="tags">${tags}</ul>` : ""}
       ${curList.length > 1 ? `<nav class="sh-nav" aria-label="前後の組">
@@ -460,7 +519,7 @@
   function revealSheetBody() {
     G.set(els.sheetBody, { autoAlpha: 1 });
     G.fromTo(els.sheetBody.children, { y: 26, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 0.85, ease: "expo.out", stagger: 0.05 });
-    fillMeters(els.sheetBody, 0.1);
+    animateData(els.sheetBody, 0.1);
   }
 
   function openSheet(id, source, list) {
@@ -546,7 +605,7 @@
       onComplete: () => {
         render();
         G.fromTo(els.sheetBody, { x: 44 * dir, autoAlpha: 0 }, { x: 0, autoAlpha: 1, duration: 0.65, ease: "expo.out", onComplete: () => { sheetBusy = false; } });
-        fillMeters(els.sheetBody, 0.05);
+        animateData(els.sheetBody, 0.05);
       },
     });
   }
@@ -574,7 +633,6 @@
 
   /* ---------- 図形ロゴ ---------- */
   // 1文字 = 幅 w × 高さ 5 のグリッドに、四角・四分円・半円・三角・アーチを並べたもの
-  const n3 = (v) => +v.toFixed(3);
   const S = {
     R: (x, y, w, h) => `M${n3(x)} ${n3(y)}h${n3(w)}v${n3(h)}h${n3(-w)}Z`,
     P: (...pts) => "M" + pts.map(([x, y]) => `${n3(x)} ${n3(y)}`).join("L") + "Z",
@@ -661,7 +719,7 @@
     const opener = e.target.closest(".card, .pick");
     if (opener) return openSheet(opener.dataset.id, opener, opener.classList.contains("pick") ? picksList : null);
     const openBtn = e.target.closest("[data-open]");
-    if (openBtn) return openSheet(openBtn.dataset.open, openBtn.closest("tr"));
+    if (openBtn) return openSheet(openBtn.dataset.open, openBtn.closest("tr") || openBtn);
     const sortBtn = e.target.closest("button[data-sort]");
     if (sortBtn) return setSort(sortBtn.dataset.sort);
     const link = e.target.closest("a[data-scroll]");
@@ -729,7 +787,7 @@
         trigger: els.picks, start: "top 85%", once: true,
         onEnter: () => {
           G.fromTo(pickInners, { y: 100, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 1.4, ease: "expo.out", stagger: 0.12 });
-          fillMeters(pickInners, 0.35);
+          animateData(pickInners, 0.35);
         },
       });
     }
@@ -738,12 +796,16 @@
     ScrollTrigger.batch(".card", { start: "top 92%", once: true, onEnter: (batch) => revealInner(batch, false) });
 
     G.set(".crit", { autoAlpha: 0 });
+    G.set(".dot, .unit, .emblem-help .e-fg", { scale: 0, transformOrigin: "50% 50%" });
     ScrollTrigger.batch(".crit", {
       start: "top 90%", once: true,
-      onEnter: (b) => G.fromTo(b, { y: 50, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 1.1, ease: "expo.out", stagger: 0.08 }),
+      onEnter: (b) => {
+        G.fromTo(b, { y: 50, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 1.1, ease: "expo.out", stagger: 0.08 });
+        animateData(b, 0.35);
+      },
     });
-    G.set(".d-fill", { "--v": 0 });
-    ScrollTrigger.create({ trigger: ".dist", start: "top 85%", once: true, onEnter: () => fillMeters($(".dist"), 0.1) });
+    ScrollTrigger.create({ trigger: ".emblem-help", start: "top 85%", once: true, onEnter: () => animateData($(".emblem-help"), 0.1) });
+    ScrollTrigger.create({ trigger: ".dist", start: "top 85%", once: true, onEnter: () => animateData($(".dist"), 0.1) });
   }
 
   function logoFx() {
@@ -864,6 +926,7 @@
   buildLogo($("#logo-foot"), [["NETA", "NOTE"]]);
   renderHero();
   renderHow();
+  renderHeatLegend();
   renderPicks();
   renderChips();
   els.viewToggle.dataset.view = state.view;

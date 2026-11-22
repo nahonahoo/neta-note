@@ -104,9 +104,7 @@
       <div class="cards" id="cards"></div>
       <div class="table-view" id="table-view" hidden>
         <div class="table-wrap" id="table-wrap"></div>
-        <div class="heat-legend" aria-hidden="true">
-          <span>1</span><i class="h0"></i><i class="h1"></i><i class="h2"></i><i class="h3"></i><i class="h4"></i><i class="h5"></i><i class="h6"></i><i class="h7"></i><i class="h8"></i><span>5</span>
-        </div>
+        <div class="heat-legend" id="heat-legend" aria-hidden="true"></div>
       </div>
       <p class="empty" id="empty" hidden>見つかりませんでした。</p>
     </section>
@@ -119,8 +117,9 @@
         <p>採点のしかた。各項目1〜5（0.5刻みあり）＋全体評価</p>
       </header>
       <div class="crit-grid" id="crit-grid"></div>
+      <div class="emblem-help" id="emblem-help"></div>
       <div class="dist">
-        <h3>全体評価の分布 <small>C → B- → B+ → A- → A+ の5段階</small></h3>
+        <h3>全体評価の分布 <small>C → B- → B+ → A- → A+ の5段階。名前をタップで詳細</small></h3>
         <ul id="dist"></ul>
         <p class="dist-note"><b>好き補正</b>4項目の点数から予想される全体評価と、実際の全体評価の差。自分の採点のクセから自動で計算しています。プラスなら「点数以上に好き」。</p>
       </div>

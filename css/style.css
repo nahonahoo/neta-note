@@ -219,32 +219,48 @@ main, .foot { position: relative; z-index: 1; }
 .grade--c  { border: 1.5px dashed rgba(239, 237, 231, 0.3); color: var(--ink-3); }
 .grade--xl { min-width: 92px; height: 58px; padding: 0 18px; font-size: 26px; }
 
-/* ---------- meters ---------- */
-.meters { list-style: none; margin: 0; padding: 0; display: grid; gap: 9px; }
-.m-row { display: grid; grid-template-columns: 4.7em 1fr 2.4em; align-items: center; gap: 10px; font-size: 12px; color: var(--ink-2); transition: color .3s; }
+/* ---------- 4項目の「形と色」 ----------
+   データ用の4色はロゴのネオンより一段深い色（暗い背景で眩しすぎず、色覚の違いでも区別できる組み合わせ。検証済み）。
+   色だけに頼らず、形（● ◡ ■ ▲）とラベルでも区別できるようにしている。
+   --c: 色 / --cd: 空きの色 / --h0〜h8: 表の濃淡（1点→5点） */
+[data-k="omoshiro"] { --c: #f14499; --cd: rgba(241, 68, 153, 0.2);
+  --h0: #470027; --h1: #570131; --h2: #6d003e; --h3: #84004c; --h4: #9b015a; --h5: #b30f6a; --h6: #db428c; --h7: #ff74b0; --h8: #ffb5d1; }
+[data-k="warai"] { --c: #df7408; --cd: rgba(223, 116, 8, 0.22);
+  --h0: #3b1a00; --h1: #492200; --h2: #5b2c01; --h3: #6e3602; --h4: #824103; --h5: #994d02; --h6: #c96805; --h7: #ff8506; --h8: #febe92; }
+[data-k="rikai"] { --c: #07a1cb; --cd: rgba(7, 161, 203, 0.22);
+  --h0: #012935; --h1: #013343; --h2: #014154; --h3: #045066; --h4: #045e78; --h5: #076f8d; --h6: #0994ba; --h7: #02bced; --h8: #83dcfe; }
+[data-k="ochi"] { --c: #09af51; --cd: rgba(9, 175, 81, 0.22);
+  --h0: #002d0f; --h1: #013916; --h2: #01481d; --h3: #005725; --h4: #00672d; --h5: #037936; --h6: #20a04e; --h7: #51c672; --h8: #77eb94; }
+
+.sh { display: inline-block; flex: none; width: 1em; height: 1em; background: var(--c); vertical-align: middle; }
+.sh--circle { border-radius: 50%; }
+.sh--smile { height: 0.5em; border-radius: 0 0 50% 50% / 0 0 100% 100%; }
+.sh--square { border-radius: 0.1em; }
+.sh--tri { -webkit-clip-path: polygon(50% 0, 100% 100%, 0 100%); clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+
+/* 点数：図形5個（4点なら4個、0.5点は半分だけ塗る） */
+.meters { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.m-row { display: grid; grid-template-columns: 6em minmax(0, 1fr) 2.2em; align-items: center; gap: 8px; font-size: 12px; color: var(--ink-2); }
 .m-label { white-space: nowrap; }
-.m-track { position: relative; height: 6px; border-radius: 99px; background: var(--acc-a10); overflow: hidden; }
-.m-track::after { /* 1点ごとの目盛り */
-  content: ""; position: absolute; inset: 0; pointer-events: none;
-  background: repeating-linear-gradient(90deg, transparent 0 calc(20% - 2px), rgba(10, 11, 10, 0.9) calc(20% - 2px) 20%);
-}
-.m-fill {
-  --v: 0;
-  position: absolute; inset: 0;
-  background: linear-gradient(90deg, var(--acc-deep), var(--acc));
-  clip-path: inset(0 calc((1 - var(--v)) * 100%) 0 0 round 99px);
-  filter: drop-shadow(0 0 6px rgba(118, 230, 153, 0.55));
-}
+.m-ico { font-size: 0.85em; margin: -0.1em 7px 0 0; }
+.pips { display: flex; align-items: center; gap: 0.38em; font-size: 13px; }
+.pip { background: linear-gradient(90deg, var(--c) calc(var(--f) * 100%), var(--cd) calc(var(--f) * 100%)); }
 .m-val { text-align: right; font-family: var(--f-display); font-size: 13px; font-weight: 500; color: var(--ink); font-variant-numeric: tabular-nums; }
-/* 並び順の項目をハイライト */
-[data-sort="omoshiro"] [data-k="omoshiro"],
-[data-sort="warai"] [data-k="warai"],
-[data-sort="rikai"] [data-k="rikai"],
-[data-sort="ochi"] [data-k="ochi"] { color: var(--acc); }
-[data-sort="omoshiro"] [data-k="omoshiro"] .m-val,
-[data-sort="warai"] [data-k="warai"] .m-val,
-[data-sort="rikai"] [data-k="rikai"] .m-val,
-[data-sort="ochi"] [data-k="ochi"] .m-val { color: var(--acc-hi); }
+/* 並び順の項目を強調（文字は色を変えず太さで） */
+[data-sort="omoshiro"] .m-row[data-k="omoshiro"],
+[data-sort="warai"] .m-row[data-k="warai"],
+[data-sort="rikai"] .m-row[data-k="rikai"],
+[data-sort="ochi"] .m-row[data-k="ochi"] { color: var(--ink); font-weight: 700; }
+[data-sort="omoshiro"] .m-row[data-k="omoshiro"] .m-val,
+[data-sort="warai"] .m-row[data-k="warai"] .m-val,
+[data-sort="rikai"] .m-row[data-k="rikai"] .m-val,
+[data-sort="ochi"] .m-row[data-k="ochi"] .m-val { font-weight: 800; }
+
+/* ネタの形：4つの図形の大きさ＝4項目の点数（薄い形が満点の大きさ） */
+.emblem { display: block; flex: none; width: var(--es, 30px); height: var(--es, 30px); overflow: visible; }
+.emblem .e-bg { fill: var(--cd); }
+.emblem .e-fg { fill: var(--c); }
+.emblem--xl { --es: clamp(84px, 16vw, 116px); }
 
 /* ---------- notes & tags ---------- */
 .notes {
@@ -389,6 +405,8 @@ main, .foot { position: relative; z-index: 1; }
 }
 .card[data-grade="A+"] .card-inner { border-color: rgba(118, 230, 153, 0.26); background: linear-gradient(170deg, var(--card-hi), var(--card) 55%); }
 .card-head { display: flex; justify-content: space-between; align-items: center; }
+.card-marks, .pick-marks { display: flex; align-items: center; gap: 12px; }
+.pick-marks .emblem { --es: 40px; }
 .card-rank { font-family: var(--f-display); font-size: 11px; letter-spacing: 0.14em; color: var(--ink-3); font-variant-numeric: tabular-nums; }
 .card-name { margin: -4px 0 2px; font-size: 22px; font-weight: 900; line-height: 1.3; letter-spacing: 0.01em; }
 .card-foot { margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
@@ -428,21 +446,23 @@ main, .foot { position: relative; z-index: 1; }
 [data-sort="omoshiro"] td[data-k="omoshiro"],
 [data-sort="warai"] td[data-k="warai"],
 [data-sort="rikai"] td[data-k="rikai"],
-[data-sort="ochi"] td[data-k="ochi"] { box-shadow: inset 0 0 0 2px var(--acc-hi); }
+[data-sort="ochi"] td[data-k="ochi"] { box-shadow: inset 0 0 0 2px var(--ink); }
+.table-wrap thead .sh { font-size: 10px; margin: -0.15em 6px 0 0; }
 
-/* sequential green ramp（1 → 5）: 文字色はコントラスト4.5:1以上になる側 */
-.h0 { background: #002d12; color: var(--ink); }
-.h1 { background: #013819; color: var(--ink); }
-.h2 { background: #004721; color: var(--ink); }
-.h3 { background: #02572a; color: var(--ink); }
-.h4 { background: #016732; color: var(--ink); }
-.h5 { background: #03793c; color: var(--ink); }
-.h6 { background: #229d55; color: var(--acc-ink); }
-.h7 { background: #52c479; color: var(--acc-ink); }
-.h8 { background: #76e699; color: var(--acc-ink); }
-.heat-legend { display: flex; align-items: center; justify-content: flex-end; gap: 3px; margin-top: 12px; font-family: var(--f-display); font-size: 10px; color: var(--ink-3); }
-.heat-legend i { width: 18px; height: 10px; border-radius: 3px; }
-.heat-legend span { padding: 0 6px; }
+/* 列ごとに項目の色の濃淡（1点 → 5点）。文字色はコントラスト4.5:1以上になる側 */
+.h0 { background: var(--h0); color: var(--ink); }
+.h1 { background: var(--h1); color: var(--ink); }
+.h2 { background: var(--h2); color: var(--ink); }
+.h3 { background: var(--h3); color: var(--ink); }
+.h4 { background: var(--h4); color: var(--ink); }
+.h5 { background: var(--h5); color: var(--ink); }
+.h6 { background: var(--h6); color: var(--acc-ink); }
+.h7 { background: var(--h7); color: var(--acc-ink); }
+.h8 { background: var(--h8); color: var(--acc-ink); }
+.heat-legend { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px 16px; margin-top: 12px; font-family: var(--f-display); font-size: 10px; color: var(--ink-3); }
+.hl { display: inline-flex; align-items: center; gap: 2px; }
+.hl .sh { font-size: 9px; margin-right: 5px; }
+.hl i:not(.sh) { width: 8px; height: 10px; border-radius: 2px; }
 
 /* ---------- how ---------- */
 .crit-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: clamp(12px, 1.5vw, 20px); }
@@ -450,19 +470,46 @@ main, .foot { position: relative; z-index: 1; }
   position: relative; display: flex; flex-direction: column; gap: 10px; min-height: 240px;
   padding: 24px; border-radius: 22px; border: 1px solid var(--line); background: var(--card);
 }
-.crit-no { font-family: var(--f-display); font-weight: 900; font-size: 60px; line-height: 1; letter-spacing: -0.04em; --stroke-c: rgba(118, 230, 153, 0.55); --stroke-w: 2px; --fill-c: var(--card); }
+.crit-top { display: flex; align-items: center; justify-content: space-between; min-height: 48px; }
+.crit-shape { font-size: 44px; }
+.crit-no { font-family: var(--f-display); font-size: 12px; letter-spacing: 0.16em; color: var(--ink-3); }
 .crit h3 { margin: 6px 0 0; font-size: 24px; font-weight: 900; line-height: 1.2; }
-.crit h3 small { display: block; margin-bottom: 6px; font-family: var(--f-display); font-size: 10px; font-weight: 500; letter-spacing: 0.22em; color: var(--acc); }
+.crit h3 small { display: block; margin-bottom: 6px; font-family: var(--f-display); font-size: 10px; font-weight: 500; letter-spacing: 0.22em; color: var(--ink-3); }
 .crit p { margin: 0; font-size: 14px; color: var(--ink-2); }
+/* 分布：1組＝図形1個を、点数の位置に積む */
+.dots { display: grid; grid-template-columns: repeat(9, minmax(0, 1fr)); align-items: end; min-height: 72px; margin-top: 10px; }
+.dcol { display: flex; flex-direction: column-reverse; align-items: center; gap: 3px; }
+.dot { font-size: 11px; padding: 0; border: 0; cursor: pointer; transition: filter .2s; }
+.dot:hover, .dot:focus-visible { filter: brightness(1.5); }
+.dots-axis { display: grid; grid-template-columns: repeat(9, minmax(0, 1fr)); padding-top: 5px; border-top: 1px solid var(--line-2); font-family: var(--f-display); font-size: 10px; color: var(--ink-3); text-align: center; }
+.dots-axis span:nth-child(1) { grid-column: 1; } .dots-axis span:nth-child(2) { grid-column: 3; } .dots-axis span:nth-child(3) { grid-column: 5; }
+.dots-axis span:nth-child(4) { grid-column: 7; } .dots-axis span:nth-child(5) { grid-column: 9; }
 .crit .crit-avg { margin-top: auto; padding-top: 12px; border-top: 1px dashed var(--line-2); font-family: var(--f-display); font-size: 11px; letter-spacing: 0.08em; color: var(--ink-3); }
 .crit .crit-avg b { font-size: 28px; font-weight: 700; color: var(--ink); margin-left: 8px; letter-spacing: -0.02em; }
+/* ネタの形の説明 */
+.emblem-help {
+  margin-top: clamp(12px, 1.5vw, 20px); padding: clamp(22px, 3vw, 36px); border-radius: 22px; border: 1px solid var(--line); background: var(--card);
+  display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: clamp(20px, 3vw, 40px);
+}
+.emblem-help .emblem { --es: clamp(96px, 14vw, 140px); }
+.emblem-help h3 { margin: 0 0 8px; font-size: 18px; font-weight: 900; }
+.emblem-help h3 small { margin-left: 10px; font-family: var(--f-display); font-size: 10px; font-weight: 500; letter-spacing: 0.2em; color: var(--ink-3); }
+.emblem-help p { margin: 0 0 14px; font-size: 14px; color: var(--ink-2); }
+.e-legend { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 13px; }
+.e-legend .sh { margin-right: 7px; }
 .dist { margin-top: clamp(12px, 1.5vw, 20px); padding: clamp(22px, 3vw, 36px); border-radius: 22px; border: 1px solid var(--line); background: var(--card); }
 .dist h3 { margin: 0 0 22px; font-size: 18px; font-weight: 900; }
 .dist h3 small { display: block; margin-top: 4px; font-size: 12px; font-weight: 400; color: var(--ink-3); }
-.dist ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.dist ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
 .dist li { display: grid; grid-template-columns: 60px minmax(0, 1fr) 56px; align-items: center; gap: 16px; }
-.d-track { position: relative; height: 12px; border-radius: 99px; background: rgba(239, 237, 231, 0.05); overflow: hidden; }
-.d-fill { --v: 0; position: absolute; inset: 0; background: linear-gradient(90deg, var(--acc-deep), var(--acc)); clip-path: inset(0 calc((1 - var(--v)) * 100%) 0 0 round 99px); }
+/* 全体評価の分布：1組＝チップ1個 */
+.units { display: flex; flex-wrap: wrap; gap: 6px; }
+.unit {
+  height: 32px; padding: 0 14px; border-radius: 99px; border: 1px solid var(--line-2); background: rgba(239, 237, 231, 0.05);
+  font-size: 13px; font-weight: 700; color: var(--ink); white-space: nowrap; transition: border-color .3s, background-color .3s;
+}
+.unit:hover, .unit:focus-visible { border-color: var(--acc); background: var(--acc-a10); }
+.units-empty { color: var(--ink-3); font-size: 13px; }
 .dist li > b { text-align: right; font-family: var(--f-display); font-size: 18px; font-weight: 700; }
 .dist li > b small { font-family: var(--f-jp); font-size: 11px; color: var(--ink-3); margin-left: 3px; font-weight: 400; }
 .dist-note { margin: 24px 0 0; padding-top: 18px; border-top: 1px dashed var(--line-2); font-size: 13px; color: var(--ink-2); line-height: 1.7; }
@@ -501,19 +548,30 @@ main, .foot { position: relative; z-index: 1; }
 .sh-top { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 22px; margin-bottom: 30px; }
 .sh-total { font-family: var(--f-display); font-size: 13px; color: var(--ink-3); letter-spacing: .04em; }
 .sh-total b { font-size: 42px; font-weight: 800; color: var(--ink); letter-spacing: -0.03em; margin-right: 4px; }
-.sh-meters { gap: 16px; margin-bottom: 30px; }
-.sh-meters .m-row { grid-template-columns: 6.4em 1fr 2.6em; font-size: 14px; gap: 14px; }
-.sh-meters .m-label small { display: block; font-family: var(--f-display); font-size: 9px; letter-spacing: 0.18em; color: var(--ink-3); }
-.sh-meters .m-track { height: 10px; }
+.sh-emblem { margin: 0 0 0 auto; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.sh-emblem figcaption { font-size: 10px; color: var(--ink-3); letter-spacing: 0.12em; }
+.sh-meters { gap: 18px; margin-bottom: 30px; }
+.sh-meters .m-row { grid-template-columns: 7.4em minmax(0, 1fr) 2.4em; font-size: 14px; gap: 12px; }
+.sh-meters .m-label { display: grid; grid-template-columns: auto 1fr; align-items: center; }
+.sh-meters .m-label small { grid-column: 2; font-family: var(--f-display); font-size: 9px; letter-spacing: 0.18em; color: var(--ink-3); font-weight: 400; }
+.sh-meters .pips { font-size: clamp(18px, 4.4vw, 24px); }
 .sh-meters .m-val { font-size: 22px; font-weight: 700; }
 .sh-bias {
   display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 4px 16px;
   margin-bottom: 30px; padding: 16px 18px; border-radius: 16px;
-  background: var(--acc-a10); border: 1px solid rgba(118, 230, 153, 0.18);
+  background: rgba(239, 237, 231, 0.04); border: 1px solid var(--line-2);
 }
 .sh-bias b { grid-row: span 2; font-family: var(--f-display); font-size: 26px; font-weight: 700; letter-spacing: -0.02em; }
 .sh-bias span { font-size: 13px; font-weight: 700; }
 .sh-bias small { font-size: 12px; color: var(--ink-2); line-height: 1.5; }
+/* 好き補正：真ん中（点数どおり）から左右に伸びるバー */
+.bias-track { grid-column: 1 / -1; position: relative; height: 10px; margin-top: 12px; border-radius: 99px; background: rgba(239, 237, 231, 0.07); }
+.bias-track::after { content: ""; position: absolute; left: 50%; top: -5px; bottom: -5px; width: 2px; margin-left: -1px; border-radius: 2px; background: var(--ink-3); }
+.bias-fill { position: absolute; top: 0; bottom: 0; border-radius: 99px; }
+.bias-fill.pos { background: #f14499; }
+.bias-fill.neg { background: #07a1cb; }
+.bias-scale { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr auto 1fr; gap: 8px; font-size: 10px; color: var(--ink-3); }
+.bias-scale span:last-child { text-align: right; }
 .sh-notes { list-style: none; margin: 0 0 22px; padding: 0; display: grid; gap: 8px; font-family: var(--f-hand); font-weight: 600; font-size: clamp(18px, 2.4vw, 22px); line-height: 1.5; }
 .sh-notes li { position: relative; padding-left: 1.1em; }
 .sh-notes li::before { content: ""; position: absolute; left: 0.1em; top: 0.68em; width: 0.38em; height: 0.38em; border-radius: 50%; background: var(--acc); box-shadow: 0 0 10px var(--acc); }
@@ -571,7 +629,9 @@ main, .foot { position: relative; z-index: 1; }
   .sheet-close { top: 18px; right: 14px; width: 42px; height: 42px; }
   .crit-grid { grid-template-columns: minmax(0, 1fr); }
   .crit { min-height: 0; }
-  .dist li { grid-template-columns: 52px minmax(0, 1fr) 48px; gap: 12px; }
+  .dist li { grid-template-columns: 52px minmax(0, 1fr) 40px; gap: 12px; }
+  .emblem-help { grid-template-columns: minmax(0, 1fr); justify-items: start; }
+  .unit { height: 30px; padding: 0 12px; font-size: 12px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
