@@ -25,6 +25,12 @@
   --acc-a10: rgba(118, 230, 153, 0.1);
   --acc-a20: rgba(118, 230, 153, 0.2);
 
+  /* neon（飾り用の4色。点数などデータの色は緑のまま） */
+  --neon-green: #76e699;
+  --neon-pink: #ff65ab;
+  --neon-cyan: #4edffe;
+  --neon-yellow: #f7ea3c;
+
   /* type */
   --f-display: "Unbounded", "Zen Kaku Gothic New", system-ui, sans-serif;
   --f-jp: "Zen Kaku Gothic New", system-ui, -apple-system, "Hiragino Sans", "Yu Gothic UI", sans-serif;
@@ -133,17 +139,29 @@ main, .foot { position: relative; z-index: 1; }
   font-size: 13px; font-weight: 700; letter-spacing: 0.3em; color: var(--acc);
 }
 .hero-kicker::before { content: ""; width: 40px; height: 1px; background: currentColor; }
-.hero-title {
-  margin: 0; font-family: var(--f-display); font-weight: 900;
-  font-size: clamp(72px, 20.5vw, 290px); line-height: 0.86; letter-spacing: -0.045em;
+/* ロゴ：図形パーツで組んだ SVG */
+.hero-logo { width: min(100%, 78vh, 1100px); display: flex; flex-direction: column; gap: clamp(18px, 3.4vh, 36px); }
+.hero-title { margin: 0; line-height: 0; }
+.shape-logo { display: block; width: 100%; height: auto; overflow: visible; cursor: pointer; -webkit-tap-highlight-color: transparent; user-select: none; }
+.shape-logo .pc-shape { stroke: var(--bg); stroke-width: 0.08; stroke-linejoin: round; }
+.shape-logo .c0 { fill: var(--neon-green); }
+.shape-logo .c1 { fill: var(--neon-pink); }
+.shape-logo .c2 { fill: var(--neon-cyan); }
+.shape-logo .c3 { fill: var(--neon-yellow); }
+.shape-logo .c4 { fill: var(--ink); }
+.logo-hint {
+  display: none; margin-left: auto; align-items: center; gap: 8px;
+  font-size: 11px; letter-spacing: 0.2em; color: var(--neon-pink); white-space: nowrap;
 }
-.hero-title .line { display: block; overflow: hidden; padding: 0.02em 0 0.05em; margin-bottom: -0.05em; }
-.hero-title .word { display: inline-block; white-space: nowrap; }
-.hero-title .ch { display: inline-block; will-change: transform; }
+.motion-on .logo-hint { display: inline-flex; }
+.logo-hint::before {
+  content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; box-shadow: 0 0 10px currentColor;
+  animation: hint-pulse 1.6s ease-in-out infinite;
+}
+@keyframes hint-pulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(0.5); opacity: 0.4; } }
 /* 輪郭文字：可変フォントは字形の重なりが線として透けるので、
    「線→塗り」の順で描いて塗り（背景色）で内側の線を隠す。線幅は外側半分だけ見えるので2倍に */
 .outline-fx { paint-order: stroke fill; -webkit-text-stroke-color: var(--stroke-c); -webkit-text-stroke-width: var(--stroke-w); color: var(--fill-c); }
-.hero-title .outline { --stroke-c: var(--acc); --stroke-w: clamp(3px, 0.5vw, 6px); --fill-c: var(--bg); }
 .hero-bottom { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 28px 40px; }
 .hero-lead { margin: 0; max-width: 34em; font-size: clamp(20px, 2.6vw, 30px); font-weight: 900; line-height: 1.35; letter-spacing: 0.02em; }
 .hero-lead small { display: block; margin-top: 10px; font-size: 13px; font-weight: 400; line-height: 1.7; color: var(--ink-2); letter-spacing: 0.02em; }
@@ -452,11 +470,7 @@ main, .foot { position: relative; z-index: 1; }
 
 /* ---------- footer ---------- */
 .foot { margin-top: clamp(110px, 16vh, 200px); padding: 0 var(--gutter) calc(28px + env(safe-area-inset-bottom)); border-top: 1px solid var(--line); overflow: hidden; }
-.foot-mark {
-  margin: 28px 0 22px; white-space: nowrap;
-  font-family: var(--f-display); font-weight: 900; font-size: clamp(44px, 10.4vw, 210px); line-height: 0.85; letter-spacing: -0.05em;
-  --stroke-c: rgba(239, 237, 231, 0.22); --stroke-w: 2px; --fill-c: var(--bg);
-}
+.foot-logo { margin: clamp(28px, 4vw, 48px) 0 clamp(22px, 3vw, 36px); }
 .foot-meta { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px 24px; font-family: var(--f-display); font-size: 11px; letter-spacing: 0.1em; color: var(--ink-3); }
 .foot-meta b { color: var(--ink); }
 
@@ -516,7 +530,7 @@ main, .foot { position: relative; z-index: 1; }
   display: grid; place-items: center;
   transition: width .45s var(--ease-out), height .45s var(--ease-out), margin .45s var(--ease-out), background-color .3s, border-color .3s, opacity .3s;
 }
-.cursor::after { content: "OPEN"; font-family: var(--f-display); font-size: 10px; font-weight: 700; letter-spacing: 0.12em; color: var(--acc-ink); opacity: 0; transition: opacity .2s; }
+.cursor::after { content: attr(data-label); font-family: var(--f-display); font-size: 10px; font-weight: 700; letter-spacing: 0.12em; color: var(--acc-ink); opacity: 0; transition: opacity .2s; }
 .cursor.is-hover { width: 42px; height: 42px; margin: -21px 0 0 -21px; background: var(--acc-a20); border-color: var(--acc); }
 .cursor.is-card { width: 74px; height: 74px; margin: -37px 0 0 -37px; background: var(--acc); }
 .cursor.is-card::after { opacity: 1; }
@@ -543,7 +557,6 @@ main, .foot { position: relative; z-index: 1; }
 @media (max-width: 640px) {
   :root { --nav-h: 56px; }
   .nav nav { gap: 16px; font-size: 10px; }
-  .hero-title { font-size: 23.5vw; }
   .toolbar { position: relative; top: auto; grid-template-areas: "search view" "chips chips" "sort sort"; grid-template-columns: minmax(0, 1fr) auto; }
   .view-toggle button { min-width: 62px; }
   .hero-stats { width: 100%; justify-content: space-between; }

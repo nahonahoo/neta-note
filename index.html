@@ -44,11 +44,11 @@
     <!-- ───────── HERO ───────── -->
     <section class="hero">
       <div class="hero-main">
-        <p class="hero-kicker" data-intro>お笑い観賞ノート</p>
-        <h1 class="hero-title" aria-label="NETA NOTE">
-          <span class="line" aria-hidden="true"><span class="word" data-split>NETA</span></span>
-          <span class="line" aria-hidden="true"><span class="word outline outline-fx" data-split>NOTE</span></span>
-        </h1>
+        <div class="hero-logo">
+          <p class="hero-kicker" data-intro>お笑い観賞ノート<span class="logo-hint">ロゴをタップ</span></p>
+          <!-- ロゴは図形パーツで組み立て（js/app.js の GLYPHS） -->
+          <h1 class="hero-title" aria-label="NETA NOTE"><svg id="logo-hero" class="shape-logo" aria-hidden="true"></svg></h1>
+        </div>
         <div class="hero-bottom">
           <p class="hero-lead" data-intro>観たネタ、ぜんぶ採点。<small>おもしろ・笑い・理解度・オチの4項目と、全体評価で記録しています。</small></p>
           <dl class="hero-stats">
@@ -128,7 +128,7 @@
   </main>
 
   <footer class="foot">
-    <p class="foot-mark outline-fx" aria-hidden="true">NETA NOTE</p>
+    <div class="foot-logo" aria-hidden="true"><svg id="logo-foot" class="shape-logo"></svg></div>
     <div class="foot-meta">
       <span>最終更新 <time id="updated"></time></span>
       <span><b id="foot-count">0</b> ACTS RECORDED</span>

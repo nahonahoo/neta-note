@@ -572,8 +572,92 @@
     touch = null;
   }, { passive: true });
 
+  /* ---------- 図形ロゴ ---------- */
+  // 1文字 = 幅 w × 高さ 5 のグリッドに、四角・四分円・半円・三角・アーチを並べたもの
+  const n3 = (v) => +v.toFixed(3);
+  const S = {
+    R: (x, y, w, h) => `M${n3(x)} ${n3(y)}h${n3(w)}v${n3(h)}h${n3(-w)}Z`,
+    P: (...pts) => "M" + pts.map(([x, y]) => `${n3(x)} ${n3(y)}`).join("L") + "Z",
+    Q: (x, y, r, corner) => { // 四分円：corner が丸くなる角
+      const [a, b, e, f] = [n3(x), n3(y), n3(x + r), n3(y + r)];
+      return {
+        tl: `M${e} ${f}L${a} ${f}A${r} ${r} 0 0 1 ${e} ${b}Z`,
+        tr: `M${a} ${f}L${a} ${b}A${r} ${r} 0 0 1 ${e} ${f}Z`,
+        br: `M${a} ${b}L${e} ${b}A${r} ${r} 0 0 1 ${a} ${f}Z`,
+        bl: `M${e} ${b}L${e} ${f}A${r} ${r} 0 0 1 ${a} ${b}Z`,
+      }[corner];
+    },
+    capR: (x, cy, r) => `M${n3(x)} ${n3(cy - r)}A${r} ${r} 0 0 1 ${n3(x)} ${n3(cy + r)}Z`, // 右向き半円
+    capL: (x, cy, r) => `M${n3(x)} ${n3(cy + r)}A${r} ${r} 0 0 1 ${n3(x)} ${n3(cy - r)}Z`, // 左向き半円
+    capB: (cx, y, r) => `M${n3(cx - r)} ${n3(y)}A${r} ${r} 0 0 0 ${n3(cx + r)} ${n3(y)}Z`, // 下向き半円
+    archT: (x, y) => `M${n3(x)} ${n3(y + 2)}A2 2 0 0 1 ${n3(x + 4)} ${n3(y + 2)}L${n3(x + 3)} ${n3(y + 2)}A1 1 0 0 0 ${n3(x + 1)} ${n3(y + 2)}Z`,
+    archB: (x, y) => `M${n3(x)} ${n3(y)}A2 2 0 0 0 ${n3(x + 4)} ${n3(y)}L${n3(x + 3)} ${n3(y)}A1 1 0 0 1 ${n3(x + 1)} ${n3(y)}Z`,
+  };
+  const GLYPHS = {
+    N: { w: 4, at: (x, y) => [
+      S.Q(x, y, 1, "tl"), S.R(x, y + 1, 1, 4),
+      S.P([x + 1, y], [x + 2, y + 1.7], [x + 2, y + 3.3], [x + 1, y + 1.6]),
+      S.P([x + 2, y + 1.7], [x + 3, y + 3.4], [x + 3, y + 5], [x + 2, y + 3.3]),
+      S.R(x + 3, y, 1, 4), S.Q(x + 3, y + 4, 1, "br"),
+    ] },
+    E: { w: 3.2, at: (x, y) => [
+      S.Q(x, y, 1, "tl"), S.R(x + 1, y, 1.7, 1), S.capR(x + 2.7, y + 0.5, 0.5),
+      S.R(x, y + 1, 1, 3), S.R(x + 1, y + 2, 1.2, 1), S.P([x + 2.2, y + 2], [x + 3, y + 2.5], [x + 2.2, y + 3]),
+      S.Q(x, y + 4, 1, "bl"), S.R(x + 1, y + 4, 2.2, 1),
+    ] },
+    T: { w: 4, at: (x, y) => [
+      S.capL(x + 0.5, y + 0.5, 0.5), S.R(x + 0.5, y, 1, 1), S.R(x + 1.5, y, 1, 4.5), S.capB(x + 2, y + 4.5, 0.5), S.R(x + 2.5, y, 1.5, 1),
+    ] },
+    A: { w: 4, at: (x, y) => [S.archT(x, y), S.R(x, y + 2, 1, 3), S.R(x + 1, y + 3, 2, 1), S.R(x + 3, y + 2, 1, 3)] },
+    O: { w: 4, at: (x, y) => [S.archT(x, y), S.R(x, y + 2, 1, 1), S.R(x + 3, y + 2, 1, 1), S.archB(x, y + 3)] },
+  };
+  // 隣り合うパーツが同じ色にならない並び（緑・ピンク・シアン・イエロー・白）
+  const colorOf = (i, k) => "c" + ((i * 3 + k) % 5);
+
+  function buildLogo(svg, rows) {
+    const H = 5, GAP = 0.6, WORD = 1.7, LEAD = 0.8, PAD = 0.1;
+    const ds = [];
+    let width = 0;
+    rows.forEach((words, r) => {
+      let x = 0;
+      const y = r * (H + LEAD);
+      words.forEach((word, wi) => {
+        if (wi) x += WORD;
+        [...word].forEach((ch, ci) => {
+          const g = GLYPHS[ch];
+          if (!g) return;
+          if (ci) x += GAP;
+          ds.push(...g.at(x, y));
+          x += g.w;
+        });
+      });
+      width = Math.max(width, x);
+    });
+    const height = rows.length * H + (rows.length - 1) * LEAD;
+    svg.setAttribute("viewBox", `${-PAD} ${-PAD} ${n3(width + PAD * 2)} ${n3(height + PAD * 2)}`);
+    svg.innerHTML = ds.map((d, i) => `<g class="pc"><path class="pc-shape ${colorOf(i, 0)}" d="${d}"/></g>`).join("");
+  }
+
+  // タップ：弾けて、色の組み合わせを変えて戻る
+  let logoK = 0;
+  function burstLogo(svg) {
+    if (!motion) return;
+    // フッターは内側(.pc-shape)をスクロール演出が使うので、外側(.pc)を動かす
+    const parts = $$(svg.id === "logo-foot" ? ".pc" : ".pc-shape", svg);
+    const shapes = $$(".pc-shape", svg);
+    const rnd = G.utils.random;
+    logoK = (logoK + 1 + Math.floor(Math.random() * 3)) % 5;
+    G.killTweensOf(parts);
+    G.timeline()
+      .to(parts, { x: () => rnd(-7, 7), y: () => rnd(-5, 5), rotation: () => rnd(-270, 270), scale: () => rnd(0.5, 1.4), duration: 0.5, ease: "power3.out", stagger: { each: 0.005, from: "center" } })
+      .add(() => shapes.forEach((s, i) => s.setAttribute("class", "pc-shape " + colorOf(i, logoK))), 0.3)
+      .to(parts, { x: 0, y: 0, rotation: 0, scale: 1, autoAlpha: 1, duration: 1.4, ease: "elastic.out(1, 0.5)", stagger: { each: 0.008, from: "random" } }, 0.55);
+  }
+
   /* ---------- グローバル操作 ---------- */
   document.addEventListener("click", (e) => {
+    const logo = e.target.closest(".shape-logo");
+    if (logo) return burstLogo(logo);
     const opener = e.target.closest(".card, .pick");
     if (opener) return openSheet(opener.dataset.id, opener, opener.classList.contains("pick") ? picksList : null);
     const openBtn = e.target.closest("[data-open]");
@@ -615,20 +699,8 @@
   /* ---------- 演出 ---------- */
   function intro() {
     if (!motion) return;
-    $$("[data-split]").forEach((el) => {
-      const text = el.textContent;
-      el.textContent = "";
-      [...text].forEach((ch) => {
-        const s = document.createElement("span");
-        s.className = "ch";
-        s.textContent = ch;
-        el.appendChild(s);
-      });
-    });
     G.set(".hero-title", { visibility: "visible" });
-    G.timeline({ defaults: { ease: "expo.out" } })
-      .fromTo(".hero-title .ch", { yPercent: 120, rotate: 8 }, { yPercent: 0, rotate: 0, duration: 1.6, stagger: 0.07 }, 0.1)
-      .fromTo(".hero [data-intro]", { y: 30, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 1.3, stagger: 0.08 }, 0.55);
+    G.fromTo(".hero [data-intro]", { y: 30, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 1.3, ease: "expo.out", stagger: 0.08, delay: 0.7 });
 
     $$("[data-to]").forEach((el) => {
       const to = +el.dataset.to, dec = +el.dataset.dec || 0, o = { v: 0 };
@@ -643,7 +715,6 @@
       return;
     }
     G.to(".progress", { scaleX: 1, ease: "none", scrollTrigger: { start: 0, end: "max", scrub: 0.3 } });
-    G.to(".hero-title", { yPercent: -16, opacity: 0.2, ease: "none", scrollTrigger: { trigger: ".hero", start: "top top", end: "bottom top", scrub: true } });
 
     $$(".sec-head").forEach((h) => {
       G.timeline({ scrollTrigger: { trigger: h, start: "top 86%", once: true } })
@@ -673,8 +744,44 @@
     });
     G.set(".d-fill", { "--v": 0 });
     ScrollTrigger.create({ trigger: ".dist", start: "top 85%", once: true, onEnter: () => fillMeters($(".dist"), 0.1) });
+  }
 
-    G.fromTo(".foot-mark", { xPercent: -8 }, { xPercent: 0, ease: "none", scrollTrigger: { trigger: ".foot", start: "top bottom", end: "bottom bottom", scrub: true } });
+  function logoFx() {
+    if (!motion) return;
+    const rnd = G.utils.random;
+    const hero = $("#logo-hero"), foot = $("#logo-foot");
+    const heroShapes = $$(".pc-shape", hero), heroWraps = $$(".pc", hero);
+    const footShapes = $$(".pc-shape", foot), footWraps = $$(".pc", foot);
+    G.set([...heroShapes, ...heroWraps, ...footShapes, ...footWraps], { transformOrigin: "50% 50%" });
+
+    // 登場：パーツが四方から飛んできて組み上がる
+    G.fromTo(heroShapes,
+      { x: () => rnd(-10, 10), y: () => rnd(-8, 8), rotation: () => rnd(-220, 220), scale: 0, autoAlpha: 0 },
+      { x: 0, y: 0, rotation: 0, scale: 1, autoAlpha: 1, duration: 1.6, ease: "expo.out", stagger: { each: 0.022, from: "random" }, delay: 0.15 });
+
+    if (hasST) {
+      // スクロールで散らばる（外側の g を動かすのでタップの演出とぶつからない）
+      G.timeline({ scrollTrigger: { trigger: ".hero", start: "top top", end: "bottom top", scrub: 0.6 } })
+        .to(heroWraps, { x: () => rnd(-14, 14), y: () => rnd(-12, 3), rotation: () => rnd(-180, 180), scale: () => rnd(0.4, 1.6), ease: "power2.in", duration: 1 }, 0)
+        .to(heroWraps, { autoAlpha: 0, ease: "none", duration: 0.35 }, 0.65);
+      // フッター：下りてくるほど組み上がる
+      G.fromTo(footShapes,
+        { x: () => rnd(-14, 14), y: () => rnd(-6, 10), rotation: () => rnd(-240, 240), scale: 0.3, autoAlpha: 0 },
+        { x: 0, y: 0, rotation: 0, scale: 1, autoAlpha: 1, ease: "power2.out", stagger: { each: 0.012, from: "random" },
+          scrollTrigger: { trigger: ".foot", start: "top bottom", end: "bottom bottom", scrub: 0.8 } });
+    }
+
+    // 待機中：ときどき何個かのパーツがくるっと回って形を変える
+    const idle = () => {
+      if (window.scrollY < innerHeight * 0.6 && els.sheet.hidden) {
+        const pool = heroShapes.filter((s) => !G.isTweening(s));
+        G.utils.shuffle(pool).slice(0, 3).forEach((s, i) => {
+          G.to(s, { rotation: G.utils.random([90, -90, 180]), duration: 0.45, ease: "back.inOut(2)", yoyo: true, repeat: 1, repeatDelay: 0.5, delay: i * 0.12 });
+        });
+      }
+      G.delayedCall(rnd(2.4, 4), idle);
+    };
+    G.delayedCall(3.2, idle);
   }
 
   function marqueeFx() {
@@ -733,8 +840,10 @@
       cx(e.clientX); cy(e.clientY); sx(e.clientX); sy(e.clientY);
       const target = e.target instanceof Element ? e.target : null;
       const opener = target && els.sheet.hidden ? target.closest(".card, .pick") : null;
-      cursor.classList.toggle("is-card", !!opener);
-      cursor.classList.toggle("is-hover", !opener && !!(target && target.closest("a, button, select, input, label")));
+      const logo = !opener && target && els.sheet.hidden ? target.closest(".shape-logo") : null;
+      cursor.classList.toggle("is-card", !!(opener || logo));
+      cursor.dataset.label = opener ? "OPEN" : logo ? "TAP" : "";
+      cursor.classList.toggle("is-hover", !opener && !logo && !!(target && target.closest("a, button, select, input, label")));
       const el = opener ? $("[data-tilt]", opener) : null;
       if (tiltEl && tiltEl !== el) { const t = tiltOf(tiltEl); t.rx(0); t.ry(0); }
       tiltEl = el;
@@ -751,6 +860,8 @@
   }
 
   /* ---------- 起動 ---------- */
+  buildLogo($("#logo-hero"), [["NETA"], ["NOTE"]]);
+  buildLogo($("#logo-foot"), [["NETA", "NOTE"]]);
   renderHero();
   renderHow();
   renderPicks();
@@ -765,6 +876,7 @@
   onScroll();
   intro();
   scrollFx();
+  logoFx();
   marqueeFx();
   pointerFx();
 
