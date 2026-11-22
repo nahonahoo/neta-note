@@ -25,7 +25,7 @@
   scores: { omoshiro: 4, warai: 3.5, rikai: 5, ochi: 4 },  // 1〜5、0.5刻みOK
   grade: "A-",                 // "A+" "A-" "B+" "B-" "C"
   notes: ["メモ1", "メモ2"],
-  tags: ["へんしゅう"],        // なくてもOK
+  tags: ["初見"],              // なくてもOK
   result: "通過",              // なくてもOK
 },
 ```

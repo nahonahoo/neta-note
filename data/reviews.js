@@ -12,7 +12,7 @@
            omoshiro = おもしろ / warai = 笑い / rikai = 理解度 / ochi = オチ
   grade  : 全体評価  "A+" | "A-" | "B+" | "B-" | "C"
   notes  : メモ（いくつでも）
-  tags   : タグ（いくつでも）。例: "へんしゅう"
+  tags   : タグ（任意・いくつでも）。例: "初見"
   result : 実際の結果（任意）。例: "通過" / "敗退"
 
   ※「要確認」コメントは手書きメモの読み取りが怪しい箇所です。
@@ -21,13 +21,13 @@ window.NETA_NOTE = {
   updated: "2026-11-23",
   reviews: [
     {
-      name: "ゼロカラン", // 要確認：「ビロカラン」にも見える
+      name: "ゼロカラン",
       event: "",
       date: "",
-      scores: { omoshiro: 4, warai: 4, rikai: 3, ochi: 2 }, // 要確認：おもしろ・笑いは「③に斜線→④」を4と解釈
+      scores: { omoshiro: 4, warai: 4, rikai: 3, ochi: 2 }, // おもしろ・笑いは「③に斜線→④」＝4
       grade: "B-",
       notes: ["下品", "たいがの動きがちょうどいい", "スピードがちょっとおそい？（テンポ感）", "てんかいがおいつけない？"],
-      tags: ["へんしゅう"],
+      tags: [],
     },
     {
       name: "金魚番長",
@@ -45,7 +45,7 @@ window.NETA_NOTE = {
       scores: { omoshiro: 4, warai: 5, rikai: 3, ochi: 4 },
       grade: "A-",
       notes: ["最初から良き", "テンポさいこう", "楽しい"],
-      tags: ["へんしゅう"],
+      tags: [],
     },
     // ── ノートの緑の区切り線 ──
     {
@@ -63,7 +63,7 @@ window.NETA_NOTE = {
       date: "",
       scores: { omoshiro: 3.5, warai: 3, rikai: 4, ochi: 3 }, // おもしろは③④両方に丸 → 3.5
       grade: "A-",
-      notes: ["ゆるい", "◯◯がおもしろ", "ツッコミとボケいれ違った", "つるまるコント", "ネタ（話）内容好き"], // 要確認：「◯◯がおもしろ」の最初の語が読めず
+      notes: ["ゆるい", "顔がおもしろ", "ツッコミとボケいれ違った", "つるまるコント", "ネタ（話）内容好き"],
       tags: [],
     },
     {
@@ -82,15 +82,15 @@ window.NETA_NOTE = {
       scores: { omoshiro: 4, warai: 4, rikai: 5, ochi: 5 },
       grade: "A+",
       notes: ["きょんツッコミ良き", "血まよってる感が良い"],
-      tags: ["へんしゅう"],
+      tags: [],
     },
     {
       name: "ヨネダ2000",
       event: "",
       date: "",
-      scores: { omoshiro: 5, warai: 5, rikai: 2, ochi: 5 }, // 要確認：理解度2の横の書き込み（「〜すぎて」）が読めず
+      scores: { omoshiro: 5, warai: 5, rikai: 2, ochi: 5 },
       grade: "A+",
-      notes: ["ヨネダワールド", "何でおとされたん？"],
+      notes: ["ヨネダワールド", "何でおとされたん？", "理解度2：おもろすぎて"], // 要確認：「おもろすぎて」は理解度②の下に矢印付きで小さく書かれた注記の読み取り
       tags: [],
     },
     // ── ノートの緑の区切り線 ──
