@@ -631,6 +631,9 @@ main, .foot { position: relative; z-index: 1; }
   .crit { min-height: 0; }
   .dist li { grid-template-columns: 52px minmax(0, 1fr) 40px; gap: 12px; }
   .emblem-help { grid-template-columns: minmax(0, 1fr); justify-items: start; }
+  .sh-top { gap: 12px 14px; }
+  .sh-top .emblem--xl { --es: 62px; }
+  .sh-total b { font-size: 36px; }
   .unit { height: 30px; padding: 0 12px; font-size: 12px; }
 }
 
